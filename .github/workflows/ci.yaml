@@ -54,9 +54,9 @@ jobs:
       - name: Docker Scout Analysis for High Vulnerabilities
         id: docker_scout_high
         run: |
-          scout analyze ${GITHUB_REPOSITORY}:${GITHUB_SHA} | tee scout-output.json
+          docker-scout cves ${GITHUB_REPOSITORY}:${GITHUB_SHA} | tee scout-output.json
           cat scout-output.json
-          high_count=$(jq '.results.vulnerabilities | map(select(.severity == "high")) | length' scout-output.json)
+          high_count=$(jq '.results.vulnerabilities | map(select(.severity == "HIGH")) | length' scout-output.json)
           if [ "$high_count" -gt 0 ]; then
             echo "High severity vulnerabilities found: HIGH=$high_count"
             exit 1
