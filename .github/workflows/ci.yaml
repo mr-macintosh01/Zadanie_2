@@ -46,16 +46,37 @@ jobs:
           push: false
           tags: ghcr.io/${{ github.repository }}:latest
 
-      - name: Scan Docker image for vulnerabilities
-        id: scan
-        uses: docker/scout-action@v1
-        with:
-          image: ghcr.io/${{ github.repository }}:latest
-          summary: 'true'
-          format: 'json'
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          write-comment: 'true'
-          command: 'scan'
+      - name: Install Docker Scout CLI
+        run: |
+          curl -sSL https://raw.githubusercontent.com/docker/scout-cli/main/install.sh | sh
+          sudo mv ~/.docker/cli-plugins/docker-scout /usr/local/bin/scout
+
+      - name: Docker Scout Analysis for High Vulnerabilities
+        id: docker_scout_high
+        run: |
+          scout analyze --output scout-output.json --severity high ${GITHUB_REPOSITORY}:${GITHUB_SHA}
+          cat scout-output.json
+          high_count=$(jq '.results.vulnerabilities | map(select(.severity == "high")) | length' scout-output.json)
+          if [ "$high_count" -gt 0 ]; then
+            echo "High severity vulnerabilities found: HIGH=$high_count"
+            exit 1
+          else
+            echo "No high vulnerabilities found."
+          fi
+      
+      - name: Docker Scout Analysis for Critical Vulnerabilities
+        id: docker_scout_critical
+        run: |
+          scout analyze --output scout-output.json --severity critical ${GITHUB_REPOSITORY}:${GITHUB_SHA}
+          cat scout-output.json
+          critical_count=$(jq '.results.vulnerabilities | map(select(.severity == "critical")) | length' scout-output.json)
+          echo "CRITICAL_CVES=$critical_count" >> $GITHUB_ENV
+          if [ "$critical_count" -gt 0 ]; then
+            echo "Critical severity vulnerabilities found: CRITICAL=$critical_count"
+            exit 1
+          else
+            echo "No critical vulnerabilities found."
+          fi
 
       - name: Push Docker image
         if: steps.scan.outputs.vulnerabilities == 'none'
