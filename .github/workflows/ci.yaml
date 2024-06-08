@@ -67,16 +67,16 @@ jobs:
       - name: Docker Scout Analysis for Critical Vulnerabilities
         id: docker_scout_critical
         run: |
-          scout analyze --output scout-output.json --severity critical ${GITHUB_REPOSITORY}:${GITHUB_SHA}
+          docker-scout cves ${GITHUB_REPOSITORY}:${GITHUB_SHA} | tee scout-output.json
           cat scout-output.json
-          critical_count=$(jq '.results.vulnerabilities | map(select(.severity == "critical")) | length' scout-output.json)
-          echo "CRITICAL_CVES=$critical_count" >> $GITHUB_ENV
+          critical_count=$(jq '.results.vulnerabilities | map(select(.severity == "CRITICAL")) | length' scout-output.json)
           if [ "$critical_count" -gt 0 ]; then
             echo "Critical severity vulnerabilities found: CRITICAL=$critical_count"
             exit 1
           else
             echo "No critical vulnerabilities found."
           fi
+
 
       - name: Push Docker image
         if: steps.scan.outputs.vulnerabilities == 'none'
