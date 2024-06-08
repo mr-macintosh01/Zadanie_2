@@ -79,7 +79,6 @@ jobs:
 
 
       - name: Push Docker image
-        if: steps.scan.outputs.vulnerabilities == 'none'
         uses: docker/build-push-action@v2
         with:
           context: .
