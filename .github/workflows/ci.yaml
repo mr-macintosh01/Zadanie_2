@@ -51,11 +51,11 @@ jobs:
         uses: docker/scout-action@v1
         with:
           image: ghcr.io/${{ github.repository }}:latest
-          summary: true
-          format: json
+          summary: 'true'
+          format: 'json'
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          write-comment: true
-          command: "scan"
+          write-comment: 'true'
+          command: 'scan'
 
       - name: Push Docker image
         if: steps.scan.outputs.vulnerabilities == 'none'
