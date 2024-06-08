@@ -54,7 +54,7 @@ jobs:
       - name: Docker Scout Analysis for High Vulnerabilities
         id: docker_scout_high
         run: |
-          scout analyze ${GITHUB_REPOSITORY}:${GITHUB_SHA} --json | tee scout-output.json
+          scout analyze ${GITHUB_REPOSITORY}:${GITHUB_SHA} > scout-output.json
           cat scout-output.json
           high_count=$(jq '.results.vulnerabilities | map(select(.severity == "high")) | length' scout-output.json)
           if [ "$high_count" -gt 0 ]; then
@@ -64,9 +64,6 @@ jobs:
             echo "No high vulnerabilities found."
           fi
 
-
-
-      
       - name: Docker Scout Analysis for Critical Vulnerabilities
         id: docker_scout_critical
         run: |
